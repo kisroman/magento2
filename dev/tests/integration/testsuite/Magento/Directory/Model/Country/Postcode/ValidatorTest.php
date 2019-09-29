@@ -5,25 +5,34 @@
  */
 namespace Magento\Directory\Model\Country\Postcode;
 
+use Magento\Directory\Model\Country\Postcode\ValidatorInterface;
 use Magento\TestFramework\Helper\Bootstrap;
 
 class ValidatorTest extends \PHPUnit\Framework\TestCase
 {
     /**
-     * @var \Magento\Directory\Model\Country\Postcode\ValidatorInterface
+     * @var ValidatorInterface
      */
     protected $validator;
 
+    /**
+     * @inheritdoc
+     */
     protected function setUp()
     {
+        parent::setUp();
+
         $objectManager = Bootstrap::getObjectManager();
-        $this->validator = $objectManager->create(\Magento\Directory\Model\Country\Postcode\ValidatorInterface::class);
+        $this->validator = $objectManager->create(ValidatorInterface::class);
     }
 
     /**
+     * @param string $countryId
+     * @param string $validPostcode
+     *
      * @dataProvider getPostcodesDataProvider
      */
-    public function testPostCodes($countryId, $validPostcode)
+    public function testPostCodes(string $countryId, string $validPostcode)
     {
         try {
             $this->assertTrue($this->validator->validate($validPostcode, $countryId));
@@ -43,19 +52,30 @@ class ValidatorTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
+     * @param string $countryId
+     * @param string $invalidPostCode
+     *
      * @dataProvider getCanadaInvalidPostCodes
      */
-    public function testInvalidCanadaZipCode($countryId, $invalidPostCode)
+    public function testInvalidCanadaZipCode(string $countryId, string $invalidPostCode)
     {
         $this->assertFalse($this->validator->validate($invalidPostCode, $countryId));
     }
 
     /**
+     * @param string $countryId
+     * @param string $validPostCode
+     *
      * @dataProvider getCanadaValidPostCodes
      */
-    public function testValidCanadaZipCode($countryId, $validPostCode)
+    public function testValidCanadaZipCode(string $countryId, string $validPostCode)
     {
         $this->assertTrue($this->validator->validate($validPostCode, $countryId));
+    }
+
+    public function testValidCountryIdWithoutZipCodesSpecified()
+    {
+        $this->assertTrue($this->validator->validate('test code', 'UG'));
     }
 
     /**

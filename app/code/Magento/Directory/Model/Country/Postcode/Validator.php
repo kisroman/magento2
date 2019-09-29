@@ -5,6 +5,10 @@
  */
 namespace Magento\Directory\Model\Country\Postcode;
 
+use Magento\Directory\Api\CountryInformationAcquirerInterface;
+use Magento\Framework\App\ObjectManager;
+use Magento\Framework\Exception\NoSuchEntityException;
+
 class Validator implements ValidatorInterface
 {
     /**
@@ -13,19 +17,30 @@ class Validator implements ValidatorInterface
     protected $postCodesConfig;
 
     /**
-     * @param ConfigInterface $postCodesConfig
+     * @var CountryInformationAcquirerInterface
      */
-    public function __construct(\Magento\Directory\Model\Country\Postcode\ConfigInterface $postCodesConfig)
-    {
+    private $countryInformationAcquirer;
+
+    /**
+     * @param ConfigInterface $postCodesConfig
+     * @param CountryInformationAcquirerInterface|null $countryInformationAcquirer
+     */
+    public function __construct(
+        ConfigInterface $postCodesConfig,
+        CountryInformationAcquirerInterface $countryInformationAcquirer = null
+    ) {
         $this->postCodesConfig = $postCodesConfig;
+        $this->countryInformationAcquirer = $countryInformationAcquirer
+            ?: ObjectManager::getInstance()->get(CountryInformationAcquirerInterface::class);
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function validate($postcode, $countryId)
     {
         $postCodes = $this->postCodesConfig->getPostCodes();
+
         if (isset($postCodes[$countryId]) && is_array($postCodes[$countryId])) {
             $patterns = $postCodes[$countryId];
             foreach ($patterns as $pattern) {
@@ -35,6 +50,14 @@ class Validator implements ValidatorInterface
                 }
             }
             return false;
+        } else {
+            try {
+                $countryInfo = $this->countryInformationAcquirer->getCountryInfo($countryId);
+                if (null !== $countryInfo) {
+                    return true;
+                }
+            } catch (NoSuchEntityException $e) {
+            }
         }
         throw new \InvalidArgumentException('Provided countryId does not exist.');
     }
