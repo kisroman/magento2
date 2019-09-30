@@ -5,7 +5,6 @@
  */
 namespace Magento\Directory\Model\Country\Postcode;
 
-use Magento\Directory\Model\Country\Postcode\ValidatorInterface;
 use Magento\TestFramework\Helper\Bootstrap;
 
 class ValidatorTest extends \PHPUnit\Framework\TestCase
